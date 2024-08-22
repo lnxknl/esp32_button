@@ -151,7 +151,7 @@ static void button_cb(void *args)
     }
 }
 //static button_dev_t *button_create_com(uint8_t active_level, uint8_t (*hal_get_key_state)(void *usr_data), void *usr_data,uint16_t ticks,uint8_t state)
-static button_dev_t *button_create_com(uint8_t active_level, uint8_t (*hal_get_key_state)(void *usr_data), void *usr_data)
+static button_dev_t *button_create_com(uint8_t active_level, uint8_t (*hal_get_key_state)(void *usr_data), void *usr_data)// @NOTE 
 {
     BTN_CHECK(NULL != hal_get_key_state, "Function pointer is invalid", NULL);
 
@@ -173,7 +173,7 @@ static button_dev_t *button_create_com(uint8_t active_level, uint8_t (*hal_get_k
 
     if (false == g_is_timer_running) {
         esp_timer_create_args_t button_timer;
-        button_timer.arg = NULL;
+        button_timer.arg = NULL;// @NOTE bind timer for button
         button_timer.callback = button_cb;
         button_timer.dispatch_method = ESP_TIMER_TASK;
         button_timer.name = "button_timer";
@@ -228,7 +228,7 @@ button_handle_t button_create(const button_config_t *config)
         ret = button_gpio_init(cfg);
         BTN_CHECK(ESP_OK == ret, "gpio button init failed", NULL);
         //btn = button_create_com(cfg->active_level, button_gpio_get_key_level, (void *)cfg->gpio_num,ticks,state);
-        btn = button_create_com(cfg->active_level, button_gpio_get_key_level, (void *)cfg->gpio_num);
+        btn = button_create_com(cfg->active_level, button_gpio_get_key_level, (void *)cfg->gpio_num);// @NOTE 
     } break;
     case BUTTON_TYPE_ADC: {
         // const button_adc_config_t *cfg = &(config->adc_button_config);
@@ -266,7 +266,7 @@ esp_err_t button_delete(button_handle_t btn_handle)
     return ESP_OK;
 }
 
-esp_err_t button_register_cb(button_handle_t btn_handle, button_event_t event, button_cb_t cb)
+esp_err_t button_register_cb(button_handle_t btn_handle, button_event_t event, button_cb_t cb)// @NOTE 
 {
     BTN_CHECK(NULL != btn_handle, "Pointer of handle is invalid", ESP_ERR_INVALID_ARG);
     BTN_CHECK(event < BUTTON_EVENT_MAX, "event is invalid", ESP_ERR_INVALID_ARG);

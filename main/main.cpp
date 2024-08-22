@@ -427,7 +427,7 @@ void LED_OFF()
     gpio_set_level(LED_Out, 0);
 }
 
-button_handle_t button_add;
+button_handle_t button_add;// @NOTE 
 button_handle_t button_sub;
 button_handle_t button_power;
 button_handle_t button_led;
@@ -723,7 +723,7 @@ static void button_led_click_event(void *in)
         LED_OFF();
     }
 }
-void init_mbutton()
+void init_mbutton()// @NOTE 
 {
     button_config_t gpio_btn_cfg = {
         .type = BUTTON_TYPE_GPIO,
@@ -757,7 +757,7 @@ void init_mbutton()
         ESP_LOGE(TAG, "KEY_POWER Button create failed");
     }
     // 注册事件,
-    button_register_cb(button_led, BUTTON_PRESS_DOWN, button_led_click_event);
+    button_register_cb(button_led, BUTTON_PRESS_DOWN, button_led_click_event);// @NOTE 
 
     button_register_cb(button_add, BUTTON_PRESS_DOWN, button_add_click_event);
     // button_register_cb(button_add, BUTTON_DOUBLE_CLICK, button_add_double_click_event);
