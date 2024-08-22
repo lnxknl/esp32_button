@@ -1,0 +1,74 @@
+idf_component_register 的参数包括：
+
+SRCS - 组件的源文件，用于为组件创建静态库；如果没有指定，组件将被视为仅配置组件，从而创建接口库。
+
+SRC_DIRS、 EXCLUDE_SRCS - 用于通过指定目录来 glob 源文件 (.c、.cpp、.S)，而不是通过 SRCS 手动指定源文件。请注意，这受 CMake 中通配符的限制。 在 EXCLUDE_SRCS 中指定的源文件会从被 glob 的文件中移除。
+
+INCLUDE_DIRS - 相对于组件目录的路径，该路径将被添加到需要当前组件的所有其他组件的 include 搜索路径中。
+
+PRIV_INCLUDE_DIRS - 必须是相对于组件目录的目录路径，它仅被添加到这个组件源文件的 include 搜索路径中。
+
+REQUIRES - 组件的公共组件依赖项。
+
+PRIV_REQUIRES - 组件的私有组件依赖项；在仅用于配置的组件上会被忽略。
+
+LDFRAGMENTS - 组件链接器片段文件。
+
+REQUIRED_IDF_TARGETS - 指定该组件唯一支持的目标。
+
+KCONFIG - 覆盖默认的 Kconfig 文件。
+
+KCONFIG_PROJBUILD - 覆盖默认的 Kconfig.projbuild 文件。
+
+WHOLE_ARCHIVE - 如果指定了此参数，链接时会在组件库的前后分别添加 -Wl,--whole-archive 和 -Wl,--no-whole-archive。这与设置 WHOLE_ARCHIVE 组件属性的效果一致。
+
+以下内容用于 将数据嵌入到组件中，并在确定组件是否仅用于配置时被视为源文件。这意味着，即使组件没有指定源文件，如果组件指定了以下其中之一，仍然会在内部为组件创建一个静态库。
+
+EMBED_FILES - 嵌入组件的二进制文件
+
+EMBED_TXTFILES - 嵌入组件的文本文件
+
+ESP-IDF 组件属性
+组件的属性值可以通过使用构建命令 idf_component_get_property 来获取。例如，以下命令可以获取 freertos 组件的目录。
+
+idf_component_get_property(dir freertos COMPONENT_DIR)
+message(STATUS "The 'freertos' component directory is: ${dir}")
+COMPONENT_ALIAS - COMPONENT_LIB 的别名，用于将组件链接到外部目标；由 idf_build_component 设置，别名库本身由 idf_component_register 创建。
+
+COMPONENT_DIR - 组件目录；由 idf_build_component 设置。
+
+COMPONENT_OVERRIDEN_DIR - 如果 这个组件覆盖了另一个组件，则包含原组件的目录。
+
+COMPONENT_LIB - 所创建的组件静态/接口库的名称；由 idf_build_component 设置，库本身由 idf_component_register 创建。
+
+COMPONENT_NAME - 组件的名称；由 idf_build_component 根据组件的目录名设置。
+
+COMPONENT_TYPE - 组件的类型（LIBRARY 或 CONFIG_ONLY）。如果一个组件指定了源文件或嵌入了一个文件，那么它的类型就是 LIBRARY。
+
+EMBED_FILES - 要嵌入组件的文件列表；由 idf_component_register EMBED_FILES 参数设置。
+
+EMBED_TXTFILES - 要嵌入组件的文本文件列表；由 idf_component_register EMBED_TXTFILES 参数设置。
+
+INCLUDE_DIRS - 组件 include 目录列表；由 idf_component_register INCLUDE_DIRS 参数设置。
+
+KCONFIG - 组件 Kconfig 文件；由 idf_build_component 设置。
+
+KCONFIG_PROJBUILD - 组件 Kconfig.projbuild；由 idf_build_component 设置。
+
+LDFRAGMENTS - 组件链接器片段文件列表；由 idf_component_register LDFRAGMENTS 参数设置。
+
+MANAGED_PRIV_REQUIRES - IDF 组件管理器从``idf_component.yml``清单文件中的依赖关系中添加的私有组件依赖关系列表。
+
+MANAGED_REQUIRES - IDF 组件管理器从 idf_component.yml 清单文件的依赖关系中添加的公共组件依赖关系列表。
+
+PRIV_INCLUDE_DIRS - 组件私有 include 目录列表；在 LIBRARY 类型的组件 idf_component_register PRIV_INCLUDE_DIRS 参数中设置。
+
+PRIV_REQUIRES - 私有组件依赖关系列表；根据 idf_component_register PRIV_REQUIRES 参数的值以及 idf_component.yml 清单文件中的依赖关系设置。
+
+REQUIRED_IDF_TARGETS - 组件支持的目标列表；由 idf_component_register EMBED_TXTFILES 参数设置。
+
+REQUIRES - 公共组件依赖关系列表；根据 idf_component_register REQUIRES 参数的值以及 idf_component.yml 清单文件中的依赖关系设置。
+
+SRCS - 组件源文件列表；由 idf_component_register 的 SRCS 或 SRC_DIRS/EXCLUDE_SRCS 参数设置。
+
+WHOLE_ARCHIVE - 如果该属性被设置为 TRUE （或是其他 CMake 布尔“真”值：1、ON、YES、Y 等），链接时会在组件库的前后分别添加 -Wl,--whole-archive 和 -Wl,--no-whole-archive 选项。这可以强制链接器将每个目标文件包含到可执行文件中，即使该目标文件没有解析来自应用程序其余部分的任何引用。当组件中包含依赖链接时注册的插件或模块时，通常会使用该方法。默认情况下，此属性为 FALSE。可以从组件的 CMakeLists.txt 文件中将其设置为 TRUE。

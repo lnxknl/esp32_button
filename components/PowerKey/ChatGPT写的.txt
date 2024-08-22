@@ -1,0 +1,103 @@
+如果需要在开机和关机时分别设置不同的长按时间，您可以在组件的配置结构体long_press_button_config_t中添加两个不同的参数，分别用于存储开机和关机的长按时间。下面是更新后的组件代码：
+
+long_press_button.h:
+
+#ifndef LONG_PRESS_BUTTON_H
+#define LONG_PRESS_BUTTON_H
+
+#include "driver/gpio.h"
+
+typedef struct {
+    gpio_num_t button_gpio_pin;     // 按键GPIO引脚
+    gpio_num_t power_gpio_pin;      // 电源GPIO引脚
+    TickType_t power_on_press_duration;   // 开机长按时间
+    TickType_t power_off_press_duration;  // 关机长按时间
+    uint8_t power_off_press_count;   // 关机按键需要按下的次数
+} long_press_button_config_t;
+
+esp_err_t long_press_button_init(const long_press_button_config_t* config);
+
+#endif
+long_press_button.c:
+
+C
+Copy code
+#include "long_press_button.h"
+
+static void long_press_button_task(void* arg);
+
+esp_err_t long_press_button_init(const long_press_button_config_t* config)
+{
+    if (!config) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    // 配置按键引脚
+    gpio_pad_select_gpio(config->button_gpio_pin);
+    gpio_set_direction(config->button_gpio_pin, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(config->button_gpio_pin, GPIO_PULLUP_ONLY);
+
+    // 配置电源引脚
+    gpio_pad_select_gpio(config->power_gpio_pin);
+    gpio_set_direction(config->power_gpio_pin, GPIO_MODE_OUTPUT);
+    gpio_set_level(config->power_gpio_pin, 0);
+
+    // 创建任务
+    xTaskCreate(long_press_button_task, "long_press_button_task", 2048, (void*)config, 10, NULL);
+
+    return ESP_OK;
+}
+
+static void long_press_button_task(void* arg)
+{
+    const long_press_button_config_t* config = (long_press_button_config_t*)arg;
+
+    TickType_t start_tick = 0;
+    int press_count = 0;
+
+    while(1) {
+        // 读取按键状态
+        int button_state = gpio_get_level(config->button_gpio_pin);
+
+        if (button_state == 0) {
+            // 按键被按下
+            if (start_tick == 0) {
+                // 开始计时
+                start_tick = xTaskGetTickCount();
+            }
+
+            TickType_t press_duration = config->power_off_press_duration;
+            if (press_count == 0) {
+                // 如果当前是第一次按下，则使用开机长按时间
+                press_duration = config->power_on_press_duration;
+            }
+
+            if ((xTaskGetTickCount() - start_tick) >= pdMS_TO_TICKS(press_duration)) {
+                if (press_count == 0) {
+                    // 如果当前是第一次按下，则将电源打开
+                    gpio_set_level(config->power_gpio_pin, 1);
+                } else if (press_count == config->power_off_press_count) {
+                    // 如果按下次数达到要求，则将电源关闭
+                    gpio_set_level(config->power_gpio_pin, 0);
+                    press_count = 0;
+                }
+
+                // 重置计时和按键按下次数
+                start_tick = 0;
+                press_count++;
+            }
+        } else {
+            // 按键未被按下
+            if (press_count > 0) {
+                // 如果按键之前被按下过，则重置按键按下次数
+                press_count = 0;
+            }
+
+            // 重置计时
+            start_tick = 0;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));  // 10毫秒的延时
+    }
+}
+在更新后的代码中，long_press_button_config_t结构体新增了一个成员power_on_press_duration，用于存储开机的长按时间。在long_press_button_task函数中，我们根据当前按下的是开机按键还是关机按键来决定长按时间。具体来说，当press_count为0时，说明当前按下的是开机按键，此时使用power_on_press_duration作为长按时间；当press_count不为0时
